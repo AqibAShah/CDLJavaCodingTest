@@ -3,10 +3,17 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.HashMap;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class CDLCheckoutTest {
-
+	
+	
+	@BeforeEach
+	public void setupTests() {
+		CDLCheckout.setDefaultValues();
+	}
+	
 	@Test
 	void filterShoppingItems_lower() {
 		String shopping = "AaBCD";
@@ -28,6 +35,14 @@ class CDLCheckoutTest {
 		String shopping = "A@B'C;D£!";
 		List<Character> expectedResult = List.of('A', 'B', 'C', 'D');
 		List<Character> result = CDLCheckout.filterShoppingItems(shopping);
+		assertEquals(expectedResult, result);
+	}
+	
+	@Test
+	void filterItemList_unique() {
+		String items = "A@B'C;D£!FELHJDSRERETHSFSTHAFV";
+		List<Character> expectedResult = List.of('A','B', 'C', 'D', 'F', 'E', 'L', 'H', 'J', 'S', 'R', 'T', 'V');
+		List<Character> result = CDLCheckout.filterItemList(items);
 		assertEquals(expectedResult, result);
 	}
 

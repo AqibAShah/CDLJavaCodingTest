@@ -19,11 +19,52 @@ import java.util.Scanner;
  */
 
 public class CDLCheckout {
-
+	
+	private static HashMap<Character, Integer> priceList = new HashMap<>();
+	private static HashMap<Character, HashMap<Integer, Integer>> specialPriceList = new HashMap<>();
+	private static List<Character> itemList;
+	
 	public static void main(String[] args) {
 		Scanner userInput = new Scanner(System.in);
 		while (true) {
-			System.out.println("Please scan your shopping. Type 'Q' to quit.");
+			System.out.println("Insert price list? 'y' for Yes");
+			String choice = userInput.nextLine();
+			if (choice.equalsIgnoreCase("Y"))
+			{
+				System.out.println("Please insert a list of your SKUs (e.g. ABCD for items A-D). Type 'Q' to quit.");
+				String itemInput = userInput.nextLine();
+				if (itemInput.equalsIgnoreCase("Q")) {
+					System.out.println("Thank you for shopping with us.");
+					break;
+				}
+				itemList = filterItemList(itemInput);
+				for (char item: itemList)
+				{
+					System.out.println("Insert the unit price in pence of item: " + item);
+					int price = userInput.nextInt();
+					priceList.put(item, price);
+					System.out.println("Insert the number of items you would like to do a discount on for item: " + item);
+					System.out.println("If you do not want to do a discount, enter 1");
+					int quantity = userInput.nextInt();
+					HashMap<Integer, Integer> discount = new HashMap<>();
+					if (quantity != 1) {
+						System.out.println("Insert the special price for item: " + item);
+						int specialPrice = userInput.nextInt();
+						discount.put(quantity, specialPrice);
+					}
+					else
+					{
+						discount.put(1,0);
+					}
+					specialPriceList.put(item, discount);
+				}			
+			}
+			else {
+				System.out.println("Using default prices");
+				setDefaultValues();
+				
+			}
+			System.out.println("Please scan your shopping. Press Q to finish shopping.");
 			final String shoppingList = userInput.nextLine();
 
 			if (shoppingList.equalsIgnoreCase("Q")) {
@@ -45,6 +86,8 @@ public class CDLCheckout {
 	 * after all items have been scanned.
 	 * 
 	 * @param items The list of filtered shopping items
+	 * @param specialPriceList 
+	 * @param priceList 
 	 */
 	private static void scanShopping(List<Character> items) {
 		List<Character> scannedItems = new ArrayList<>();
@@ -70,20 +113,17 @@ public class CDLCheckout {
 	 * @return The total value of the shopping after applying discounted prices
 	 */
 	public static int calculateTotalValue(HashMap<Character, Integer> itemCounts) {
-		final Map<Character, Integer> priceList = Map.ofEntries(
-				Map.entry('A', 50), Map.entry('B', 30),
-				Map.entry('C', 20), Map.entry('D', 15));
-		final Map<Character, Integer> specialPriceList = Map.ofEntries(Map.entry('A', 130), Map.entry('B', 45));
-		List<Character> itemList = List.of('A', 'B', 'C', 'D');
 		int totalValue = 0;
 		int count, value;
 		for (char item : itemList) {
 			count = itemCounts.get(item);
-			value = priceList.get(item) * count;
-			if (item == 'A') {
-				value = specialPriceList.get('A') * (count / 3) + priceList.get('A') * (count % 3);
-			} else if (item == 'B') {
-				value = specialPriceList.get('B') * (count / 2) + priceList.get('B') * (count % 2);
+			int specialPrice = specialPriceList.get(item).values().iterator().next();
+			int quantity = specialPriceList.get(item).keySet().iterator().next();
+			if (quantity != 1) {
+				value = (specialPrice * (count / quantity)) + (priceList.get(item) * (count % quantity));
+			}
+			else {
+				value = priceList.get(item) * count;
 			}
 			totalValue += value;
 
@@ -145,6 +185,35 @@ public class CDLCheckout {
 		}
 		System.out.println(String.format("%s Total: \u00A3%s", totalType, valueInPounds));
 
+	}
+	
+
+	public static List<Character> filterItemList(String itemInput) {
+		String validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		char[] items = itemInput.toUpperCase().toCharArray();
+		List<Character> list = new ArrayList<Character>();
+		for (int i = 0; i < items.length; i++) {
+			if (validChars.indexOf(items[i]) > -1 && list.indexOf(items[i]) == -1) {
+				list.add(items[i]);
+			}
+		}
+		return list;
+	}
+	
+	public static void setDefaultValues() {
+		String defaultItems = "ABCD";
+		itemList = filterItemList(defaultItems);
+		Map<Character, Integer> defaultPrice = Map.ofEntries(
+				Map.entry('A', 50), Map.entry('B', 30),
+				Map.entry('C', 20), Map.entry('D', 15));
+		priceList = new HashMap<>(defaultPrice);
+		specialPriceList = new HashMap<>();
+		specialPriceList.put('A',  new HashMap<>(Map.ofEntries(Map.entry(3, 130))));
+		specialPriceList.put('B',  new HashMap<>(Map.ofEntries(Map.entry(2, 45))));
+		specialPriceList.put('C',  new HashMap<>(Map.ofEntries(Map.entry(1, 0))));
+		specialPriceList.put('D',  new HashMap<>(Map.ofEntries(Map.entry(1, 0))));
+		
+		
 	}
 
 }
