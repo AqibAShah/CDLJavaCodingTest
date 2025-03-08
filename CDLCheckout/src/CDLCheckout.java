@@ -19,18 +19,17 @@ import java.util.Scanner;
  */
 
 public class CDLCheckout {
-	
+
 	private static HashMap<Character, Integer> priceList = new HashMap<>();
 	private static HashMap<Character, HashMap<Integer, Integer>> specialPriceList = new HashMap<>();
 	private static List<Character> itemList;
-	
+
 	public static void main(String[] args) {
 		Scanner userInput = new Scanner(System.in);
 		while (true) {
 			System.out.println("Insert price list? 'y' for Yes");
 			String choice = userInput.nextLine();
-			if (choice.equalsIgnoreCase("Y"))
-			{
+			if (choice.equalsIgnoreCase("Y")) {
 				System.out.println("Please insert a list of your SKUs (e.g. ABCD for items A-D). Type 'Q' to quit.");
 				String itemInput = userInput.nextLine();
 				if (itemInput.equalsIgnoreCase("Q")) {
@@ -38,13 +37,13 @@ public class CDLCheckout {
 					break;
 				}
 				itemList = filterItemList(itemInput);
-				for (char item: itemList)
-				{
+				for (char item : itemList) {
 					System.out.println("Insert the unit price in pence of item: " + item);
 					int price = userInput.nextInt();
 					userInput.nextLine();
 					priceList.put(item, price);
-					System.out.println("Insert the number of items you would like to do a discount on for item: " + item);
+					System.out
+							.println("Insert the number of items you would like to do a discount on for item: " + item);
 					System.out.println("If you do not want to do a discount, enter 1");
 					int quantity = userInput.nextInt();
 					userInput.nextLine();
@@ -54,18 +53,15 @@ public class CDLCheckout {
 						int specialPrice = userInput.nextInt();
 						userInput.nextLine();
 						discount.put(quantity, specialPrice);
-					}
-					else
-					{
-						discount.put(1,0);
+					} else {
+						discount.put(1, 0);
 					}
 					specialPriceList.put(item, discount);
-				}			
-			}
-			else {
+				}
+			} else {
 				System.out.println("Using default prices");
 				setDefaultValues();
-				
+
 			}
 			System.out.println("Please scan your shopping, Press Q to finish shopping.");
 			final String shoppingList = userInput.nextLine();
@@ -88,9 +84,9 @@ public class CDLCheckout {
 	 * the customers shopping as items are being scanned. It prints the final total
 	 * after all items have been scanned.
 	 * 
-	 * @param items The list of filtered shopping items
-	 * @param specialPriceList 
-	 * @param priceList 
+	 * @param items            The list of filtered shopping items
+	 * @param specialPriceList
+	 * @param priceList
 	 */
 	private static void scanShopping(List<Character> items) {
 		List<Character> scannedItems = new ArrayList<>();
@@ -124,8 +120,7 @@ public class CDLCheckout {
 			int quantity = specialPriceList.get(item).keySet().iterator().next();
 			if (quantity != 1) {
 				value = (specialPrice * (count / quantity)) + (priceList.get(item) * (count % quantity));
-			}
-			else {
+			} else {
 				value = priceList.get(item) * count;
 			}
 			totalValue += value;
@@ -135,7 +130,7 @@ public class CDLCheckout {
 	}
 
 	/**
-	 * Function that counts the occurrences of valid items
+	 * Method to count the occurrences of valid items.
 	 * 
 	 * @param scannedItems list of characters that are valid
 	 * @return a map of items and their frequency counts
@@ -149,8 +144,8 @@ public class CDLCheckout {
 	}
 
 	/**
-	 * prepares the shopping list for further processing by removing items that are
-	 * not in the item list
+	 * This method prepares the shopping list for further processing by removing
+	 * items that are not in the item list.
 	 * 
 	 * @param shoppingList The list of items to filter
 	 * @return A list of valid shopping items
@@ -189,10 +184,9 @@ public class CDLCheckout {
 		System.out.println(String.format("%s Total: \u00A3%s", totalType, valueInPounds));
 
 	}
-	
+
 	/**
-	 * Function to filter out invalid characters from the 
-	 * item list.
+	 * A method to filter out invalid characters from the item list.
 	 * 
 	 * @param itemInput list of items to process
 	 * @return a list of valid items
@@ -208,25 +202,57 @@ public class CDLCheckout {
 		}
 		return list;
 	}
-	
+
 	/**
-	 * Function to set default values for the price, item and special price
-	 * lists.
+	 * A method to set default values for the price, item and special price lists.
 	 */
 	public static void setDefaultValues() {
 		String defaultItems = "ABCD";
-		itemList = filterItemList(defaultItems);
 		Map<Character, Integer> defaultPrice = Map.ofEntries(
-				Map.entry('A', 50), Map.entry('B', 30),
+				Map.entry('A', 50), Map.entry('B', 30), 
 				Map.entry('C', 20), Map.entry('D', 15));
-		priceList = new HashMap<>(defaultPrice);
-		specialPriceList = new HashMap<>();
-		specialPriceList.put('A',  new HashMap<>(Map.ofEntries(Map.entry(3, 130))));
-		specialPriceList.put('B',  new HashMap<>(Map.ofEntries(Map.entry(2, 45))));
-		specialPriceList.put('C',  new HashMap<>(Map.ofEntries(Map.entry(1, 0))));
-		specialPriceList.put('D',  new HashMap<>(Map.ofEntries(Map.entry(1, 0))));
-		
-		
+		HashMap<Character, HashMap<Integer, Integer>> specialPrices = new HashMap<>();
+		specialPrices.put('A', new HashMap<>(Map.ofEntries(Map.entry(3, 130))));
+		specialPrices.put('B', new HashMap<>(Map.ofEntries(Map.entry(2, 45))));
+		specialPrices.put('C', new HashMap<>(Map.ofEntries(Map.entry(1, 0))));
+		specialPrices.put('D', new HashMap<>(Map.ofEntries(Map.entry(1, 0))));
+
+		setItemList(filterItemList(defaultItems));
+		setPriceList(new HashMap<>(defaultPrice));
+		setSpecialPriceList(specialPrices);
+
+	}
+
+	/**
+	 * A method to set the private attribute itemList
+	 * 
+	 * @param items The list of items for which we want to set item list to
+	 */
+	public static void setItemList(List<Character> items) {
+		itemList = items;
+
+	}
+
+	/**
+	 * A method to set the private attribute priceList
+	 * 
+	 * @param prices The map of characters to prices for which we want to set price
+	 *               list to
+	 */
+	public static void setPriceList(HashMap<Character, Integer> prices) {
+		priceList = prices;
+
+	}
+
+	/**
+	 * A method to set the private attribute specialPriceList
+	 *
+	 * @param specialPrices The map of special prices for which we want to set
+	 *                      special price list to
+	 */
+	public static void setSpecialPriceList(HashMap<Character, HashMap<Integer, Integer>> specialPrices) {
+		specialPriceList = specialPrices;
+
 	}
 
 }
