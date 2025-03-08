@@ -42,14 +42,17 @@ public class CDLCheckout {
 				{
 					System.out.println("Insert the unit price in pence of item: " + item);
 					int price = userInput.nextInt();
+					userInput.nextLine();
 					priceList.put(item, price);
 					System.out.println("Insert the number of items you would like to do a discount on for item: " + item);
 					System.out.println("If you do not want to do a discount, enter 1");
 					int quantity = userInput.nextInt();
+					userInput.nextLine();
 					HashMap<Integer, Integer> discount = new HashMap<>();
 					if (quantity != 1) {
 						System.out.println("Insert the special price for item: " + item);
 						int specialPrice = userInput.nextInt();
+						userInput.nextLine();
 						discount.put(quantity, specialPrice);
 					}
 					else
@@ -64,7 +67,7 @@ public class CDLCheckout {
 				setDefaultValues();
 				
 			}
-			System.out.println("Please scan your shopping. Press Q to finish shopping.");
+			System.out.println("Please scan your shopping, Press Q to finish shopping.");
 			final String shoppingList = userInput.nextLine();
 
 			if (shoppingList.equalsIgnoreCase("Q")) {
