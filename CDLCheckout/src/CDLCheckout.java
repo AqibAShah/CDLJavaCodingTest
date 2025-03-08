@@ -3,7 +3,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static java.util.Map.entry;
 import java.util.Scanner;
 
 /**
@@ -87,18 +86,28 @@ public class CDLCheckout {
 	 * @return The total value of the shopping after applying discounted prices
 	 */
 	private static int applyDiscounts(HashMap<Character, Integer> itemCounts) {
-		final Map<Character, Integer> priceList = Map.ofEntries(entry('A', 50), entry('B', 30), entry('C', 20),
-				entry('D', 15));
-		final Map<Character, Integer> specialPriceList = Map.ofEntries(entry('A', 130), entry('B', 45));
-		int countA = itemCounts.get('A');
-		int countB = itemCounts.get('B');
-		int countC = itemCounts.get('C');
-		int countD = itemCounts.get('D');
-		int valueA = specialPriceList.get('A') * (countA / 3) + priceList.get('A') * (countA % 3);
-		int valueB = specialPriceList.get('B') * (countB / 2) + priceList.get('B') * (countB % 2);
-		int valueC = priceList.get('C') * countC;
-		int valueD = priceList.get('D') * countD;
-		return valueA + valueB + valueC + valueD;
+		final Map<Character, Integer> priceList = Map.ofEntries(
+				Map.entry('A', 50), Map.entry('B', 30),
+				Map.entry('C', 20), Map.entry('D', 15));
+		final Map<Character, Integer> specialPriceList = Map.ofEntries(Map.entry('A', 130), Map.entry('B', 45));
+		List<Character> itemList = List.of('A','B','C','D');
+		int totalValue = 0;
+		int count, value;
+		for (char item : itemList) {
+			count = itemCounts.get(item);
+			value = priceList.get(item)*count;
+			if (item == 'A')
+			{
+				value = specialPriceList.get('A') * (count / 3) + priceList.get('A') * (count % 3);
+			}
+			else if (item == 'B')
+			{
+				value = specialPriceList.get('B') * (count / 2) + priceList.get('B') * (count % 2);
+			}
+			totalValue += value;
+			
+		}
+		return totalValue;
 	}
 
 	/**
