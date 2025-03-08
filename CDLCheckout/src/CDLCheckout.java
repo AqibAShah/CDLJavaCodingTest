@@ -135,14 +135,14 @@ public class CDLCheckout {
 	}
 
 	/**
+	 * Function that counts the occurrences of valid items
 	 * 
 	 * @param scannedItems list of characters that are valid
 	 * @return a map of items and their frequency counts
 	 */
 	private static HashMap<Character, Integer> getItemCount(List<Character> scannedItems) {
-		List<Character> validItems = List.of('A', 'B', 'C', 'D');
 		HashMap<Character, Integer> itemCountMap = new HashMap<>();
-		for (char item : validItems) {
+		for (char item : itemList) {
 			itemCountMap.put(item, Collections.frequency(scannedItems, item));
 		}
 		return itemCountMap;
@@ -150,13 +150,13 @@ public class CDLCheckout {
 
 	/**
 	 * prepares the shopping list for further processing by removing items that are
-	 * not A,B,C or D
+	 * not in the item list
 	 * 
 	 * @param shoppingList The list of items to filter
 	 * @return A list of valid shopping items
 	 */
 	public static List<Character> filterShoppingItems(String shoppingList) {
-		String validChars = "ABCD";
+		String validChars = itemList.toString();
 		char[] items = shoppingList.toUpperCase().toCharArray();
 		List<Character> list = new ArrayList<Character>();
 		for (int i = 0; i < items.length; i++) {
@@ -190,7 +190,13 @@ public class CDLCheckout {
 
 	}
 	
-
+	/**
+	 * Function to filter out invalid characters from the 
+	 * item list.
+	 * 
+	 * @param itemInput list of items to process
+	 * @return a list of valid items
+	 */
 	public static List<Character> filterItemList(String itemInput) {
 		String validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		char[] items = itemInput.toUpperCase().toCharArray();
@@ -203,6 +209,10 @@ public class CDLCheckout {
 		return list;
 	}
 	
+	/**
+	 * Function to set default values for the price, item and special price
+	 * lists.
+	 */
 	public static void setDefaultValues() {
 		String defaultItems = "ABCD";
 		itemList = filterItemList(defaultItems);
