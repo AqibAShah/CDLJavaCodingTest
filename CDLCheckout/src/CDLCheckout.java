@@ -51,10 +51,7 @@ public class CDLCheckout {
 		int totalCost = 0;
 		for (int i = 0; i <= items.size(); i++) {
 			scannedItems = items.subList(0, i);
-			if (scannedItems.isEmpty()) {
-				break;
-			}
-			final HashMap<Character, Integer> itemCounts = getItemCount(scannedItems);
+			HashMap<Character, Integer> itemCounts = getItemCount(scannedItems);
 			totalCost = calculateTotalValue(itemCounts);
 			if (i != items.size()) {
 				displayCurrentPrice(totalCost, 'r');
