@@ -22,7 +22,6 @@ public class CDLCheckout {
 
 	public static void main(String[] args) {
 		Scanner userInput = new Scanner(System.in);
-		// continue to scan shopping until the user is done
 		while (true) {
 			System.out.println("Please scan your shopping. Type 'Q' to quit.");
 			final String shoppingList = userInput.nextLine();
@@ -31,7 +30,6 @@ public class CDLCheckout {
 				System.out.println("Thank you for shopping with us.");
 				break;
 			}
-			// filter out invalid characters from the string
 			List<Character> items = filterShoppingItems(shoppingList);
 			System.out.println("Scanning the following items: " + items);
 			scanShopping(items);
@@ -53,7 +51,11 @@ public class CDLCheckout {
 		int totalCost = 0;
 		for (int i = 0; i <= items.size(); i++) {
 			scannedItems = items.subList(0, i);
-			totalCost = calculateTotalValue(scannedItems);
+			if (scannedItems.isEmpty()) {
+				break;
+			}
+			final HashMap<Character, Integer> itemCounts = getItemCount(scannedItems);
+			totalCost = calculateTotalValue(itemCounts);
 			if (i != items.size()) {
 				displayCurrentPrice(totalCost, 'r');
 			}
@@ -66,46 +68,28 @@ public class CDLCheckout {
 	 * the frequency of each item of interest and calculates the value, applying
 	 * discounts where possible.
 	 * 
-	 * @param scannedItems list of items for which we want the total value
-	 * @return the total value of the list of items
-	 */
-	public static int calculateTotalValue(List<Character> scannedItems) {
-		if (scannedItems.isEmpty()) {
-			return 0;
-		}
-		final HashMap<Character, Integer> itemCounts = getItemCount(scannedItems);
-		int totalValue = applyDiscounts(itemCounts);
-		return totalValue;
-
-	}
-
-	/**
-	 * 
 	 * @param itemCounts list containing the frequency of each valid item in the
 	 *                   list
 	 * @return The total value of the shopping after applying discounted prices
 	 */
-	private static int applyDiscounts(HashMap<Character, Integer> itemCounts) {
+	public static int calculateTotalValue(HashMap<Character, Integer> itemCounts) {
 		final Map<Character, Integer> priceList = Map.ofEntries(
 				Map.entry('A', 50), Map.entry('B', 30),
 				Map.entry('C', 20), Map.entry('D', 15));
 		final Map<Character, Integer> specialPriceList = Map.ofEntries(Map.entry('A', 130), Map.entry('B', 45));
-		List<Character> itemList = List.of('A','B','C','D');
+		List<Character> itemList = List.of('A', 'B', 'C', 'D');
 		int totalValue = 0;
 		int count, value;
 		for (char item : itemList) {
 			count = itemCounts.get(item);
-			value = priceList.get(item)*count;
-			if (item == 'A')
-			{
+			value = priceList.get(item) * count;
+			if (item == 'A') {
 				value = specialPriceList.get('A') * (count / 3) + priceList.get('A') * (count % 3);
-			}
-			else if (item == 'B')
-			{
+			} else if (item == 'B') {
 				value = specialPriceList.get('B') * (count / 2) + priceList.get('B') * (count % 2);
 			}
 			totalValue += value;
-			
+
 		}
 		return totalValue;
 	}
@@ -132,11 +116,8 @@ public class CDLCheckout {
 	 * @return A list of valid shopping items
 	 */
 	public static List<Character> filterShoppingItems(String shoppingList) {
-		// list of valid characters
 		String validChars = "ABCD";
-		// convert string to upper case, then an array
 		char[] items = shoppingList.toUpperCase().toCharArray();
-		// arrayList to store valid characters
 		List<Character> list = new ArrayList<Character>();
 		for (int i = 0; i < items.length; i++) {
 			if (validChars.indexOf(items[i]) > -1) {
