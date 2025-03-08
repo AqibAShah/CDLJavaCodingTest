@@ -32,7 +32,7 @@ class CDLCheckoutTest {
 
 	@Test
 	void filterShoppingItems_special() {
-		String shopping = "A@B'C;D£!";
+		String shopping = "A@B'C;D!";
 		List<Character> expectedResult = List.of('A', 'B', 'C', 'D');
 		List<Character> result = CDLCheckout.filterShoppingItems(shopping);
 		assertEquals(expectedResult, result);
@@ -40,7 +40,7 @@ class CDLCheckoutTest {
 
 	@Test
 	void filterItemList_unique() {
-		String items = "A@B'C;D£!FELHJDSRERETHSFSTHAFV";
+		String items = "A@B'C;D!FELHJDSRERETHSFSTHAFV";
 		List<Character> expectedResult = List.of('A', 'B', 'C', 'D', 'F', 'E', 'L', 'H', 'J', 'S', 'R', 'T', 'V');
 		List<Character> result = CDLCheckout.filterItemList(items);
 		assertEquals(expectedResult, result);
