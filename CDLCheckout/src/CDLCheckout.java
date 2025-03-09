@@ -27,7 +27,7 @@ public class CDLCheckout {
 
 	public static void main(String[] args) {
 		while (true) {
-			String choice = getNextLine("Insert price list? 'y' for Yes");
+			String choice = getNextLine("Welcome to the checkout. Would you like to apply a custom pricing scheme? 'y' for Yes");
 			if (choice.equalsIgnoreCase("Y")) {
 				createItemList();
 				for (char item : itemList) {
