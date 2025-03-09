@@ -37,7 +37,23 @@ class CDLCheckoutTest {
 		List<Character> result = CDLCheckout.filterShoppingItems(shopping);
 		assertEquals(expectedResult, result);
 	}
+	
+	@Test
+	void filterShoppingItems_empty() {
+		String items = "";
+		List<Character> expectedResult = List.of();
+		List<Character> result = CDLCheckout.filterShoppingItems(items);
+		assertEquals(expectedResult, result);
+	}
 
+	@Test
+	void filterItemList_empty() {
+		String items = "";
+		List<Character> expectedResult = List.of();
+		List<Character> result = CDLCheckout.filterItemList(items);
+		assertEquals(expectedResult, result);
+	}
+	
 	@Test
 	void filterItemList_unique() {
 		String items = "A@B'C;D!FELHJDSRERETHSFSTHAFV1235";
