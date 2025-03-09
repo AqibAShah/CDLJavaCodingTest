@@ -26,6 +26,11 @@ public class CDLCheckout {
 	private static List<Character> itemList;
 	final private static String validSKU = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+	/**
+	 * Main method to accept user input to determine which pricing scheme to use.
+	 * The main method allows the user to input their shopping list, which is priced
+	 * using the determined pricing scheme.
+	 */
 	public static void main(String[] args) {
 		while (true) {
 			if (applyCustomPricing()) {
@@ -58,8 +63,7 @@ public class CDLCheckout {
 	 */
 	private static boolean applyCustomPricing() {
 		while (true) {
-			String choice = getNextLine(
-					"Welcome to the checkout. Would you like to apply a custom pricing scheme?\n 'Y': Yes\n 'N': No\n 'Q': Quit");
+			String choice = getNextLine("Welcome to the checkout. Would you like to apply a custom pricing scheme?\n 'Y': Yes\n 'N': No\n 'Q': Quit");
 			choice = choice.trim();
 			if (choice.equalsIgnoreCase("Y")) {
 				return true;
@@ -141,7 +145,7 @@ public class CDLCheckout {
 				displayCurrentPrice(totalCost, 'r');
 			}
 		}
-		// display final total 
+		// display final total
 		displayCurrentPrice(totalCost, 'f');
 	}
 
