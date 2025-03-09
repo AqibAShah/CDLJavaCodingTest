@@ -40,7 +40,7 @@ class CDLCheckoutTest {
 
 	@Test
 	void filterItemList_unique() {
-		String items = "A@B'C;D!FELHJDSRERETHSFSTHAFV";
+		String items = "A@B'C;D!FELHJDSRERETHSFSTHAFV1235";
 		List<Character> expectedResult = List.of('A', 'B', 'C', 'D', 'F', 'E', 'L', 'H', 'J', 'S', 'R', 'T', 'V');
 		List<Character> result = CDLCheckout.filterItemList(items);
 		assertEquals(expectedResult, result);
