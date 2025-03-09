@@ -24,21 +24,16 @@ public class CDLCheckout {
 	private static HashMap<Character, Integer> priceList = new HashMap<>();
 	private static HashMap<Character, HashMap<Integer, Integer>> specialPriceList = new HashMap<>();
 	private static List<Character> itemList;
+	final private static String validSKU = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	public static void main(String[] args) {
 		while (true) {
-			String choice = getNextLine("Welcome to the checkout. Would you like to apply a custom pricing scheme? 'y' for Yes");
-			if (choice.equalsIgnoreCase("Y")) {
+			if (applyCustomPricing()) {
 				createItemList();
 				for (char item : itemList) {
-					// insert unit price for each item
 					int price = getNextInt("Insert the unit price in pence of item: " + item);
 					priceList.put(item, price);
-					// insert discount on this item
-					int quantity = getNextInt("Insert the number of items for a discount on item: " + item
-							+ " (enter 1 for no discount).");
-					// one hash map per item of quantity as the key and the discounted
-					// price as the value
+					int quantity = getNextInt("Insert the number of items for a discount on item: " + item + " (enter 1 for no discount).");
 					HashMap<Integer, Integer> discount = new HashMap<>();
 					if (quantity != 1) {
 						int specialPrice = getNextInt("Insert the special price for item: " + item);
@@ -46,20 +41,36 @@ public class CDLCheckout {
 					} else {
 						discount.put(1, 0);
 					}
-					// the special price list is a hash map of characters
-					// and its discount hash map we defined
 					specialPriceList.put(item, discount);
 				}
 			} else {
-				// if no price list is given, the sample prices from the
-				// task are used
 				setDefaultValues();
 			}
-
 			createShoppingList();
-
 		}
+	}
 
+	/**
+	 * Method to check if the user would like to apply a custom pricing scheme.
+	 * 
+	 * @return a boolean determining if the user wants to apply a custom pricing
+	 *         scheme.
+	 */
+	private static boolean applyCustomPricing() {
+		while (true) {
+			String choice = getNextLine(
+					"Welcome to the checkout. Would you like to apply a custom pricing scheme?\n 'Y': Yes\n 'N': No\n 'Q': Quit");
+			choice = choice.trim();
+			if (choice.equalsIgnoreCase("Y")) {
+				return true;
+			} else if (choice.equalsIgnoreCase("N")) {
+				return false;
+			} else if (choice.equalsIgnoreCase("Q")) {
+				endShopping();
+			} else {
+				System.out.println("Invalid input. Please try again.");
+			}
+		}
 	}
 
 	/**
@@ -69,10 +80,9 @@ public class CDLCheckout {
 	private static void createShoppingList() {
 		List<Character> scannableItems = new ArrayList<>();
 		do {
-			final String shoppingList = getNextLine("Please scan your shopping, Press Q to finish shopping.");
+			final String shoppingList = getNextLine("Please scan your shopping, Enter 0 to finish shopping.");
 
-			if (shoppingList.equalsIgnoreCase("Q")) {
-				System.out.println("Thank you for shopping with us.");
+			if (shoppingList.equalsIgnoreCase(String.valueOf(0))) {
 				endShopping();
 			}
 			// filter out items that are not in the item list
@@ -95,14 +105,10 @@ public class CDLCheckout {
 	private static void createItemList() {
 		List<Character> items = new ArrayList<>();
 		do {
-			// user inserts their custom item list
-			String itemInput = getNextLine(
-					"Please insert a list of your SKUs (Only alphabetic characters (A-Z, a-z) are allowed). Type 'Q' to quit.");
-			if (itemInput.equalsIgnoreCase("Q")) {
-				System.out.println("Thank you for shopping with us.");
+			String itemInput = getNextLine("Please insert a list of your SKUs (Only alphabetic characters (A-Z, a-z) are allowed). Type '0' to quit.");
+			if (itemInput.equalsIgnoreCase(String.valueOf(0))) {
 				endShopping();
 			}
-			// item list is filtered if non alphabetic characters are used
 			items = filterItemList(itemInput);
 			if (items.isEmpty()) {
 				System.out.println("No items were recognised in your item list. Please try again.");
@@ -127,17 +133,15 @@ public class CDLCheckout {
 		List<Character> scannedItems = new ArrayList<>();
 		int totalCost = 0;
 		for (int i = 0; i <= items.size(); i++) {
-			// getting the sublist of scanned items to
-			// generate a running total
 			scannedItems = items.subList(0, i);
 			HashMap<Character, Integer> itemCounts = getItemCount(scannedItems);
 			totalCost = calculateTotalValue(itemCounts);
 			if (i != items.size()) {
+				// display running total
 				displayCurrentPrice(totalCost, 'r');
 			}
 		}
-		// display final total after all items
-		// scanned
+		// display final total 
 		displayCurrentPrice(totalCost, 'f');
 	}
 
@@ -190,11 +194,11 @@ public class CDLCheckout {
 	 * @return A list of valid shopping items
 	 */
 	public static List<Character> filterShoppingItems(String shoppingList) {
-		String validChars = itemList.toString();
+		String validItems = itemList.toString();
 		char[] items = shoppingList.toUpperCase().toCharArray();
 		List<Character> list = new ArrayList<Character>();
 		for (int i = 0; i < items.length; i++) {
-			if (validChars.indexOf(items[i]) > -1) {
+			if (validItems.indexOf(items[i]) > -1) {
 				list.add(items[i]);
 			}
 		}
@@ -210,11 +214,10 @@ public class CDLCheckout {
 	 * @return a list of valid items
 	 */
 	public static List<Character> filterItemList(String itemInput) {
-		String validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		char[] items = itemInput.toUpperCase().toCharArray();
 		List<Character> list = new ArrayList<Character>();
 		for (int i = 0; i < items.length; i++) {
-			if (validChars.indexOf(items[i]) > -1 && list.indexOf(items[i]) == -1) {
+			if (validSKU.indexOf(items[i]) > -1 && list.indexOf(items[i]) == -1) {
 				list.add(items[i]);
 			}
 		}
@@ -302,15 +305,12 @@ public class CDLCheckout {
 	 * @return The integer given by the user
 	 */
 	private static int getNextInt(String userPrompt) {
-		if (!userPrompt.isEmpty()) {
-			System.out.println(userPrompt);
-		}
-
 		int nextInt = -1;
 		boolean validInput = false;
 
 		while (!validInput) {
 			try {
+				System.out.println(userPrompt);
 				nextInt = userInput.nextInt();
 				userInput.nextLine();
 				validInput = true;
@@ -330,13 +330,10 @@ public class CDLCheckout {
 	 * @return The line provided by the user
 	 */
 	private static String getNextLine(String userPrompt) {
-		if (!userPrompt.isEmpty()) {
-			System.out.println(userPrompt);
-		}
-
 		String nextLine = "";
 
 		while (true) {
+			System.out.println(userPrompt);
 			nextLine = userInput.nextLine();
 			if (nextLine.trim().isEmpty()) {
 				System.out.println("No response detected. Please try again.");
@@ -351,6 +348,7 @@ public class CDLCheckout {
 	 * program.
 	 */
 	private static void endShopping() {
+		System.out.println("Thank you for shopping with us.");
 		userInput.close();
 		System.exit(0);
 	}
