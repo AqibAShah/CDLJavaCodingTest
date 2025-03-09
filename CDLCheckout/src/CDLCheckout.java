@@ -20,22 +20,103 @@ import java.util.Scanner;
 
 public class CDLCheckout {
 
+	private static Scanner userInput = new Scanner(System.in);
+	private static HashMap<Character, Integer> priceList = new HashMap<>();
+	private static HashMap<Character, HashMap<Integer, Integer>> specialPriceList = new HashMap<>();
+	private static List<Character> itemList;
+	final private static String validSKU = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
 	public static void main(String[] args) {
-		Scanner userInput = new Scanner(System.in);
 		while (true) {
-			System.out.println("Please scan your shopping. Type 'Q' to quit.");
-			final String shoppingList = userInput.nextLine();
-
-			if (shoppingList.equalsIgnoreCase("Q")) {
-				System.out.println("Thank you for shopping with us.");
-				break;
+			if (applyCustomPricing()) {
+				createItemList();
+				for (char item : itemList) {
+					int price = getNextInt("Insert the unit price in pence of item: " + item);
+					priceList.put(item, price);
+					int quantity = getNextInt("Insert the number of items for a discount on item: " + item + " (enter 1 for no discount).");
+					HashMap<Integer, Integer> discount = new HashMap<>();
+					if (quantity != 1) {
+						int specialPrice = getNextInt("Insert the special price for item: " + item);
+						discount.put(quantity, specialPrice);
+					} else {
+						discount.put(1, 0);
+					}
+					specialPriceList.put(item, discount);
+				}
+			} else {
+				setDefaultValues();
 			}
-			List<Character> items = filterShoppingItems(shoppingList);
-			System.out.println("Scanning the following items: " + items);
-			scanShopping(items);
+			createShoppingList();
 		}
+	}
 
-		userInput.close();
+	/**
+	 * Method to check if the user would like to apply a custom pricing scheme.
+	 * 
+	 * @return a boolean determining if the user wants to apply a custom pricing
+	 *         scheme.
+	 */
+	private static boolean applyCustomPricing() {
+		while (true) {
+			String choice = getNextLine(
+					"Welcome to the checkout. Would you like to apply a custom pricing scheme?\n 'Y': Yes\n 'N': No\n 'Q': Quit");
+			choice = choice.trim();
+			if (choice.equalsIgnoreCase("Y")) {
+				return true;
+			} else if (choice.equalsIgnoreCase("N")) {
+				return false;
+			} else if (choice.equalsIgnoreCase("Q")) {
+				endShopping();
+			} else {
+				System.out.println("Invalid input. Please try again.");
+			}
+		}
+	}
+
+	/**
+	 * Method to accept a list of items from the user that need to be scanned. This
+	 * prompts the user for a list of items until the input is valid.
+	 */
+	private static void createShoppingList() {
+		List<Character> scannableItems = new ArrayList<>();
+		do {
+			final String shoppingList = getNextLine("Please scan your shopping, Enter 0 to finish shopping.");
+
+			if (shoppingList.equalsIgnoreCase(String.valueOf(0))) {
+				endShopping();
+			}
+			// filter out items that are not in the item list
+			scannableItems = filterShoppingItems(shoppingList);
+			if (scannableItems.isEmpty()) {
+				System.out.println("No items were recognised in your shopping list. Please try again.");
+				continue;
+			}
+		} while (scannableItems.isEmpty());
+
+		System.out.println("Scanning the following items: " + scannableItems);
+		scanShopping(scannableItems);
+
+	}
+
+	/**
+	 * Method to accept a valid list of items from the user and set the itemList
+	 * attribute when a valid input is provided.
+	 */
+	private static void createItemList() {
+		List<Character> items = new ArrayList<>();
+		do {
+			String itemInput = getNextLine("Please insert a list of your SKUs (Only alphabetic characters (A-Z, a-z) are allowed). Type '0' to quit.");
+			if (itemInput.equalsIgnoreCase(String.valueOf(0))) {
+				endShopping();
+			}
+			items = filterItemList(itemInput);
+			if (items.isEmpty()) {
+				System.out.println("No items were recognised in your item list. Please try again.");
+			}
+		} while (items.isEmpty());
+
+		System.out.println("Item List: " + items);
+		setItemList(items);
 
 	}
 
@@ -44,7 +125,9 @@ public class CDLCheckout {
 	 * the customers shopping as items are being scanned. It prints the final total
 	 * after all items have been scanned.
 	 * 
-	 * @param items The list of filtered shopping items
+	 * @param items            The list of filtered shopping items
+	 * @param specialPriceList
+	 * @param priceList
 	 */
 	private static void scanShopping(List<Character> items) {
 		List<Character> scannedItems = new ArrayList<>();
@@ -54,9 +137,11 @@ public class CDLCheckout {
 			HashMap<Character, Integer> itemCounts = getItemCount(scannedItems);
 			totalCost = calculateTotalValue(itemCounts);
 			if (i != items.size()) {
+				// display running total
 				displayCurrentPrice(totalCost, 'r');
 			}
 		}
+		// display final total 
 		displayCurrentPrice(totalCost, 'f');
 	}
 
@@ -70,20 +155,16 @@ public class CDLCheckout {
 	 * @return The total value of the shopping after applying discounted prices
 	 */
 	public static int calculateTotalValue(HashMap<Character, Integer> itemCounts) {
-		final Map<Character, Integer> priceList = Map.ofEntries(
-				Map.entry('A', 50), Map.entry('B', 30),
-				Map.entry('C', 20), Map.entry('D', 15));
-		final Map<Character, Integer> specialPriceList = Map.ofEntries(Map.entry('A', 130), Map.entry('B', 45));
-		List<Character> itemList = List.of('A', 'B', 'C', 'D');
 		int totalValue = 0;
 		int count, value;
 		for (char item : itemList) {
 			count = itemCounts.get(item);
-			value = priceList.get(item) * count;
-			if (item == 'A') {
-				value = specialPriceList.get('A') * (count / 3) + priceList.get('A') * (count % 3);
-			} else if (item == 'B') {
-				value = specialPriceList.get('B') * (count / 2) + priceList.get('B') * (count % 2);
+			int specialPrice = specialPriceList.get(item).values().iterator().next();
+			int quantity = specialPriceList.get(item).keySet().iterator().next();
+			if (quantity != 1) {
+				value = (specialPrice * (count / quantity)) + (priceList.get(item) * (count % quantity));
+			} else {
+				value = priceList.get(item) * count;
 			}
 			totalValue += value;
 
@@ -92,38 +173,55 @@ public class CDLCheckout {
 	}
 
 	/**
+	 * Method to count the occurrences of valid items.
 	 * 
 	 * @param scannedItems list of characters that are valid
 	 * @return a map of items and their frequency counts
 	 */
 	private static HashMap<Character, Integer> getItemCount(List<Character> scannedItems) {
-		List<Character> validItems = List.of('A', 'B', 'C', 'D');
 		HashMap<Character, Integer> itemCountMap = new HashMap<>();
-		for (char item : validItems) {
+		for (char item : itemList) {
 			itemCountMap.put(item, Collections.frequency(scannedItems, item));
 		}
 		return itemCountMap;
 	}
 
 	/**
-	 * prepares the shopping list for further processing by removing items that are
-	 * not A,B,C or D
+	 * This method prepares the shopping list for further processing by removing
+	 * items that are not in the item list.
 	 * 
 	 * @param shoppingList The list of items to filter
 	 * @return A list of valid shopping items
 	 */
 	public static List<Character> filterShoppingItems(String shoppingList) {
-		String validChars = "ABCD";
+		String validItems = itemList.toString();
 		char[] items = shoppingList.toUpperCase().toCharArray();
 		List<Character> list = new ArrayList<Character>();
 		for (int i = 0; i < items.length; i++) {
-			if (validChars.indexOf(items[i]) > -1) {
+			if (validItems.indexOf(items[i]) > -1) {
 				list.add(items[i]);
 			}
 		}
 
 		return list;
 
+	}
+
+	/**
+	 * A method to filter out invalid characters from the item list.
+	 * 
+	 * @param itemInput list of items to process
+	 * @return a list of valid items
+	 */
+	public static List<Character> filterItemList(String itemInput) {
+		char[] items = itemInput.toUpperCase().toCharArray();
+		List<Character> list = new ArrayList<Character>();
+		for (int i = 0; i < items.length; i++) {
+			if (validSKU.indexOf(items[i]) > -1 && list.indexOf(items[i]) == -1) {
+				list.add(items[i]);
+			}
+		}
+		return list;
 	}
 
 	/**
@@ -145,6 +243,114 @@ public class CDLCheckout {
 		}
 		System.out.println(String.format("%s Total: \u00A3%s", totalType, valueInPounds));
 
+	}
+
+	/**
+	 * A method to set default values for the price, item and special price lists.
+	 */
+	public static void setDefaultValues() {
+		System.out.println("No pricing information was provided. Using default values.");
+		String defaultItems = "ABCD";
+		Map<Character, Integer> defaultPrice = Map.ofEntries(Map.entry('A', 50), Map.entry('B', 30), Map.entry('C', 20),
+				Map.entry('D', 15));
+		HashMap<Character, HashMap<Integer, Integer>> specialPrices = new HashMap<>();
+		specialPrices.put('A', new HashMap<>(Map.ofEntries(Map.entry(3, 130))));
+		specialPrices.put('B', new HashMap<>(Map.ofEntries(Map.entry(2, 45))));
+		specialPrices.put('C', new HashMap<>(Map.ofEntries(Map.entry(1, 0))));
+		specialPrices.put('D', new HashMap<>(Map.ofEntries(Map.entry(1, 0))));
+
+		setItemList(filterItemList(defaultItems));
+		setPriceList(new HashMap<>(defaultPrice));
+		setSpecialPriceList(specialPrices);
+		System.out.println("Items:\n A B C D\nUnit Price(pence):\n 50 30 20 15\nSpecial Price:\n 3 for 130 2 for 45");
+
+	}
+
+	/**
+	 * A method to set the private attribute itemList
+	 * 
+	 * @param items The list of items for which we want to set item list to
+	 */
+	public static void setItemList(List<Character> items) {
+		itemList = items;
+
+	}
+
+	/**
+	 * A method to set the private attribute priceList
+	 * 
+	 * @param prices The map of characters to prices for which we want to set price
+	 *               list to
+	 */
+	public static void setPriceList(HashMap<Character, Integer> prices) {
+		priceList = prices;
+
+	}
+
+	/**
+	 * A method to set the private attribute specialPriceList
+	 *
+	 * @param specialPrices The map of special prices for which we want to set
+	 *                      special price list to
+	 */
+	public static void setSpecialPriceList(HashMap<Character, HashMap<Integer, Integer>> specialPrices) {
+		specialPriceList = specialPrices;
+
+	}
+
+	/**
+	 * A method to get user input for the price and discount of items
+	 * 
+	 * @param userPrompt message used to prompt the user for an input
+	 * @return The integer given by the user
+	 */
+	private static int getNextInt(String userPrompt) {
+		int nextInt = -1;
+		boolean validInput = false;
+
+		while (!validInput) {
+			try {
+				System.out.println(userPrompt);
+				nextInt = userInput.nextInt();
+				userInput.nextLine();
+				validInput = true;
+			} catch (Exception e) {
+				System.out.println("Invalid input. Please enter a valid integer.");
+				userInput.nextLine();
+			}
+		}
+
+		return nextInt;
+	}
+
+	/**
+	 * Method to prompt the user for input when character input is required
+	 * 
+	 * @param userPrompt The message used to prompt the user for a response
+	 * @return The line provided by the user
+	 */
+	private static String getNextLine(String userPrompt) {
+		String nextLine = "";
+
+		while (true) {
+			System.out.println(userPrompt);
+			nextLine = userInput.nextLine();
+			if (nextLine.trim().isEmpty()) {
+				System.out.println("No response detected. Please try again.");
+			} else {
+				return nextLine;
+			}
+		}
+	}
+
+	/**
+	 * Method to end the shopping session, closing the scanner and ending the
+	 * program.
+	 */
+	private static void endShopping() {
+		System.out.println("Thank you for shopping with us.");
+		userInput.close();
+		System.exit(0);
 	}
 
 }

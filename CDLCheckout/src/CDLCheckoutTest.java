@@ -2,10 +2,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class CDLCheckoutTest {
+
+	@BeforeEach
+	public void setupTests() {
+		CDLCheckout.setDefaultValues();
+	}
 
 	@Test
 	void filterShoppingItems_lower() {
@@ -25,9 +32,33 @@ class CDLCheckoutTest {
 
 	@Test
 	void filterShoppingItems_special() {
-		String shopping = "A@B'C;D£!";
+		String shopping = "A@B'C;D!";
 		List<Character> expectedResult = List.of('A', 'B', 'C', 'D');
 		List<Character> result = CDLCheckout.filterShoppingItems(shopping);
+		assertEquals(expectedResult, result);
+	}
+	
+	@Test
+	void filterShoppingItems_empty() {
+		String items = "";
+		List<Character> expectedResult = List.of();
+		List<Character> result = CDLCheckout.filterShoppingItems(items);
+		assertEquals(expectedResult, result);
+	}
+
+	@Test
+	void filterItemList_empty() {
+		String items = "";
+		List<Character> expectedResult = List.of();
+		List<Character> result = CDLCheckout.filterItemList(items);
+		assertEquals(expectedResult, result);
+	}
+	
+	@Test
+	void filterItemList_unique() {
+		String items = "A@B'C;D!FELHJDSRERETHSFSTHAFV1235";
+		List<Character> expectedResult = List.of('A', 'B', 'C', 'D', 'F', 'E', 'L', 'H', 'J', 'S', 'R', 'T', 'V');
+		List<Character> result = CDLCheckout.filterItemList(items);
 		assertEquals(expectedResult, result);
 	}
 
@@ -99,6 +130,29 @@ class CDLCheckoutTest {
 		itemCountMap.put('C', 100);
 		itemCountMap.put('D', 100);
 		int expectedValue = 10090;
+		int result = CDLCheckout.calculateTotalValue(itemCountMap);
+		assertEquals(expectedValue, result);
+	}
+
+	@Test
+	void calculateTotalValue_custom() {
+		HashMap<Character, Integer> itemCountMap = new HashMap<>();
+		itemCountMap.put('X', 10);
+		itemCountMap.put('Y', 10);
+		itemCountMap.put('S', 10);
+		Map<Character, Integer> defaultPrice = Map.ofEntries(Map.entry('X', 50), Map.entry('Y', 30),
+				Map.entry('S', 20));
+
+		HashMap<Character, HashMap<Integer, Integer>> specialPrices = new HashMap<>();
+		specialPrices.put('X', new HashMap<>(Map.ofEntries(Map.entry(2, 70))));
+		specialPrices.put('Y', new HashMap<>(Map.ofEntries(Map.entry(5, 35))));
+		specialPrices.put('S', new HashMap<>(Map.ofEntries(Map.entry(1, 0))));
+
+		CDLCheckout.setItemList(CDLCheckout.filterItemList("XYS"));
+		CDLCheckout.setPriceList(new HashMap<>(defaultPrice));
+		CDLCheckout.setSpecialPriceList(specialPrices);
+
+		int expectedValue = 620;
 		int result = CDLCheckout.calculateTotalValue(itemCountMap);
 		assertEquals(expectedValue, result);
 	}
